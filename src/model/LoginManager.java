@@ -9,7 +9,7 @@ import java.util.List;
 
 public class LoginManager {
  // Store user credentials (for now, hardcoded - later use database)
-    private List<User> users;
+    private final List<User> users;
     
     public LoginManager() {
         users = new ArrayList<>();
@@ -28,6 +28,15 @@ public class LoginManager {
     
     // Validate login credentials
     public boolean validateLogin(String username, String password) {
+        for (User user : users) {
+            if (user.getUsername().equals(username) && 
+                user.getPassword().equals(password)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean authenticate(String username, String password) {
         for (User user : users) {
             if (user.getUsername().equals(username) && 
                 user.getPassword().equals(password)) {

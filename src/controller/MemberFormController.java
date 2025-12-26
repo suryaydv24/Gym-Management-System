@@ -2,270 +2,182 @@ package controller;
 
 import model.GymManager;
 import model.Member;
-import view.MemberFormFrame;
-
+import view.NewMember;
 import javax.swing.*;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class MemberFormController {
-    private MemberFormFrame memberForm;
+    private NewMember view;
     private GymManager gymManager;
-    private DashboardController dashboardController; // To refresh dashboard
-    
-    public MemberFormController(MemberFormFrame memberForm, GymManager gymManager,
-                               DashboardController dashboardController) {
-        this.memberForm = memberForm;
-        this.gymManager = gymManager;
-        this.dashboardController = dashboardController;
-        
-        setupFormActions();
-        initializeForm();
+
+    public MemberFormController(NewMember view) {
+        this.view = view;
+        this.gymManager = GymManager.getInstance(); // Use singleton
+        attachListeners();
     }
-    
-    private void setupFormActions() {
-        // Save button action
-        memberForm.getBtnSave().addActionListener(e -> saveMember());
-        
-        // Reset button action
-        memberForm.getBtnReset().addActionListener(e -> resetForm());
-        
-        // Auto-generate Member ID on focus
-        memberForm.getTxtMemberId().addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                autoGenerateMemberId();
-            }
-        });
-    }
-    
-    private void initializeForm() {
-        // Auto-generate initial member ID
-        autoGenerateMemberId();
-        
-        // Set default gym time (05:00 AM to 11:00 AM)
-        memberForm.getTxtGymTime().setText("05:00 AM to 11:00 AM");
-        
-        // Set default gender to Male
-        memberForm.getCboGender().setSelectedItem("Male");
-        
-        // Set default amount
-        memberForm.getTxtAmount().setText("5000");
-    }
-    
-    private void autoGenerateMemberId() {
-        String currentId = memberForm.getTxtMemberId().getText().trim();
-        if (currentId.isEmpty()) {
-            String newId = gymManager.generateMemberId();
-            memberForm.getTxtMemberId().setText(newId);
+
+    private void attachListeners() {
+        try {
+            Class<?> clazz = view.getClass();
+            
+            // Get Save Button
+            java.lang.reflect.Field saveField = clazz.getDeclaredField("jButton2");
+            saveField.setAccessible(true);
+            JButton saveButton = (JButton) saveField.get(view);
+            
+            // Get Reset Button
+            java.lang.reflect.Field resetField = clazz.getDeclaredField("jButton3");
+            resetField.setAccessible(true);
+            JButton resetButton = (JButton) resetField.get(view);
+            
+            // Get Exit Button
+            java.lang.reflect.Field exitField = clazz.getDeclaredField("jButton1");
+            exitField.setAccessible(true);
+            JButton exitButton = (JButton) exitField.get(view);
+            
+            // Get text fields for saving data
+            java.lang.reflect.Field nameField = clazz.getDeclaredField("jTextField1");
+            nameField.setAccessible(true);
+            JTextField nameText = (JTextField) nameField.get(view);
+            
+            java.lang.reflect.Field mobileField = clazz.getDeclaredField("jTextField2");
+            mobileField.setAccessible(true);
+            JTextField mobileText = (JTextField) mobileField.get(view);
+            
+            java.lang.reflect.Field emailField = clazz.getDeclaredField("jTextField3");
+            emailField.setAccessible(true);
+            JTextField emailText = (JTextField) emailField.get(view);
+            
+            // Add listeners
+            saveButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    saveMember();
+                }
+            });
+            
+            resetButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    JOptionPane.showMessageDialog(view, "Form Reset!");
+                }
+            });
+            
+            exitButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    view.dispose();
+                }
+            });
+            
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
     
     private void saveMember() {
         try {
-            // Get values from form
-            String memberId = memberForm.getTxtMemberId().getText().trim();
-            String name = memberForm.getTxtName().getText().trim();
-            String motherName = memberForm.getTxtMotherName().getText().trim();
-            String fatherName = memberForm.getTxtFatherName().getText().trim();
-            String mobileNumber = memberForm.getTxtMobile().getText().trim();
-            String email = memberForm.getTxtEmail().getText().trim();
-            String citizenshipNumber = memberForm.getTxtCitizenship().getText().trim();
-            String gender = (String) memberForm.getCboGender().getSelectedItem();
-            String ageStr = memberForm.getTxtAge().getText().trim();
-            String amountStr = memberForm.getTxtAmount().getText().trim();
-            String gymTime = memberForm.getTxtGymTime().getText().trim();
+            // Get all field values using reflection
+            Class<?> clazz = view.getClass();
             
-            // === VALIDATION ===
+            // Name
+            java.lang.reflect.Field nameField = clazz.getDeclaredField("jTextField1");
+            nameField.setAccessible(true);
+            JTextField nameText = (JTextField) nameField.get(view);
             
-            // 1. Required fields
-            if (name.isEmpty() || motherName.isEmpty() || fatherName.isEmpty() ||
-                mobileNumber.isEmpty() || email.isEmpty() || citizenshipNumber.isEmpty() ||
-                ageStr.isEmpty() || amountStr.isEmpty()) {
-                JOptionPane.showMessageDialog(memberForm,
-                    "Please fill all required fields!",
-                    "Validation Error",
-                    JOptionPane.ERROR_MESSAGE);
+            // Mobile
+            java.lang.reflect.Field mobileField = clazz.getDeclaredField("jTextField2");
+            mobileField.setAccessible(true);
+            JTextField mobileText = (JTextField) mobileField.get(view);
+            
+            // Email
+            java.lang.reflect.Field emailField = clazz.getDeclaredField("jTextField3");
+            emailField.setAccessible(true);
+            JTextField emailText = (JTextField) emailField.get(view);
+            
+            // Gender Combo
+            java.lang.reflect.Field genderField = clazz.getDeclaredField("jComboBox1");
+            genderField.setAccessible(true);
+            JComboBox<String> genderCombo = (JComboBox<String>) genderField.get(view);
+            
+            // Father Name
+            java.lang.reflect.Field fatherField = clazz.getDeclaredField("jTextField4");
+            fatherField.setAccessible(true);
+            JTextField fatherText = (JTextField) fatherField.get(view);
+            
+            // Mother Name
+            java.lang.reflect.Field motherField = clazz.getDeclaredField("jTextField5");
+            motherField.setAccessible(true);
+            JTextField motherText = (JTextField) motherField.get(view);
+            
+            // Gym Time Combo
+            java.lang.reflect.Field timeField = clazz.getDeclaredField("jComboBox2");
+            timeField.setAccessible(true);
+            JComboBox<String> timeCombo = (JComboBox<String>) timeField.get(view);
+            
+            // Citizenship
+            java.lang.reflect.Field citizenshipField = clazz.getDeclaredField("jTextField6");
+            citizenshipField.setAccessible(true);
+            JTextField citizenshipText = (JTextField) citizenshipField.get(view);
+            
+            // Age
+            java.lang.reflect.Field ageField = clazz.getDeclaredField("jTextField7");
+            ageField.setAccessible(true);
+            JTextField ageText = (JTextField) ageField.get(view);
+            
+            // Amount
+            java.lang.reflect.Field amountField = clazz.getDeclaredField("jTextField8");
+            amountField.setAccessible(true);
+            JTextField amountText = (JTextField) amountField.get(view);
+            
+            // Validate required fields
+            if (nameText.getText().trim().isEmpty() || mobileText.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(view, "Name and Mobile are required!");
                 return;
             }
             
-            // 2. Age validation
-            int age;
+            // Create new member
+            Member member = new Member();
+            member.setName(nameText.getText().trim());
+            member.setMobileNumber(mobileText.getText().trim());
+            member.setEmail(emailText.getText().trim());
+            member.setGender(genderCombo.getSelectedItem().toString());
+            member.setFatherName(fatherText.getText().trim());
+            member.setMotherName(motherText.getText().trim());
+            member.setGymTime(timeCombo.getSelectedItem().toString());
+            member.setCitizenshipNumber(citizenshipText.getText().trim());
+            
+            // Parse age
             try {
-                age = Integer.parseInt(ageStr);
-                if (age < 16 || age > 100) {
-                    JOptionPane.showMessageDialog(memberForm,
-                        "Age must be between 16 and 100 years!",
-                        "Validation Error",
-                        JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(memberForm,
-                    "Please enter a valid number for age!",
-                    "Validation Error",
-                    JOptionPane.ERROR_MESSAGE);
+                int age = Integer.parseInt(ageText.getText().trim());
+                member.setAge(age);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(view, "Please enter valid age!");
                 return;
             }
             
-            // 3. Amount validation
-            double amount;
+            // Parse amount
             try {
-                amount = Double.parseDouble(amountStr);
-                if (amount <= 0) {
-                    JOptionPane.showMessageDialog(memberForm,
-                        "Amount must be positive!",
-                        "Validation Error",
-                        JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(memberForm,
-                    "Please enter a valid amount!",
-                    "Validation Error",
-                    JOptionPane.ERROR_MESSAGE);
+                double amount = Double.parseDouble(amountText.getText().trim());
+                member.setAmount(amount);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(view, "Please enter valid amount!");
                 return;
             }
             
-            // 4. Email validation
-            if (!email.contains("@") || !email.contains(".")) {
-                JOptionPane.showMessageDialog(memberForm,
-                    "Please enter a valid email address!",
-                    "Validation Error",
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            // 5. Mobile validation (10 digits)
-            if (!mobileNumber.matches("\\d{10}")) {
-                JOptionPane.showMessageDialog(memberForm,
-                    "Mobile number must be 10 digits!",
-                    "Validation Error",
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            // 6. Parse gym time (format: "HH:MM AM/PM to HH:MM AM/PM")
-            LocalTime startTime = null;
-            LocalTime endTime = null;
-            try {
-                String[] timeParts = gymTime.split(" to ");
-                if (timeParts.length == 2) {
-                    startTime = parseTime(timeParts[0].trim());
-                    endTime = parseTime(timeParts[1].trim());
-                    
-                    if (startTime == null || endTime == null) {
-                        throw new Exception("Invalid time format");
-                    }
-                } else {
-                    throw new Exception("Invalid gym time format");
-                }
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(memberForm,
-                    "Please enter gym time in format: '05:00 AM to 11:00 AM'",
-                    "Validation Error",
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            // === CREATE MEMBER OBJECT ===
-            Member newMember = new Member(
-                memberId, name, motherName, fatherName,
-                mobileNumber, email, citizenshipNumber,
-                gender, age, amount,
-                startTime, endTime
-            );
-            
-            // === SAVE TO DATABASE ===
-            boolean success = gymManager.addMember(newMember);
-            
-            if (success) {
-                // Show success message
-                String message = String.format(
-                    "Member Added Successfully!\n\n" +
-                    "Member ID: %s\n" +
-                    "Name: %s\n" +
-                    "Gender: %s\n" +
-                    "Age: %d\n" +
-                    "Monthly Fee: Rs. %.2f\n" +
-                    "Gym Time: %s\n" +
-                    "Join Date: %s",
-                    memberId, name, gender, age, amount,
-                    gymTime, newMember.getJoinDate()
-                );
-                
-                JOptionPane.showMessageDialog(memberForm,
-                    message,
-                    "Success",
-                    JOptionPane.INFORMATION_MESSAGE);
-                
-                // Refresh dashboard if needed
-                if (dashboardController != null) {
-                    dashboardController.refreshDashboard();
-                }
-                
-                // Reset form for next entry
-                resetForm();
-                
-                // Auto-generate new member ID
-                autoGenerateMemberId();
-                
+            // Save to GymManager
+            if (gymManager.addMember(member)) {
+                JOptionPane.showMessageDialog(view, 
+                    "Member saved successfully!\nMember ID: " + member.getMemberId());
+                view.dispose();
             } else {
-                // Check what caused failure
-                Member existingByEmail = gymManager.getMemberByEmail(email);
-                if (existingByEmail != null) {
-                    JOptionPane.showMessageDialog(memberForm,
-                        "Email already registered for member: " + existingByEmail.getName(),
-                        "Duplicate Email",
-                        JOptionPane.ERROR_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(memberForm,
-                        "Member ID already exists!",
-                        "Duplicate ID",
-                        JOptionPane.ERROR_MESSAGE);
-                }
+                JOptionPane.showMessageDialog(view, "Failed to save member!");
             }
             
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(memberForm,
-                "Error: " + e.getMessage(),
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
+            JOptionPane.showMessageDialog(view, "Error saving member: " + e.getMessage());
         }
-    }
-    
-    // Helper method to parse time (e.g., "05:00 AM")
-    private LocalTime parseTime(String timeStr) {
-        try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm a");
-            return LocalTime.parse(timeStr.toUpperCase(), formatter);
-        } catch (DateTimeParseException e) {
-            // Try 24-hour format
-            try {
-                return LocalTime.parse(timeStr);
-            } catch (DateTimeParseException e2) {
-                return null;
-            }
-        }
-    }
-    
-    private void resetForm() {
-        // Clear all text fields
-        memberForm.getTxtName().setText("");
-        memberForm.getTxtMotherName().setText("");
-        memberForm.getTxtFatherName().setText("");
-        memberForm.getTxtMobile().setText("");
-        memberForm.getTxtEmail().setText("");
-        memberForm.getTxtCitizenship().setText("");
-        memberForm.getTxtAge().setText("");
-        memberForm.getTxtAmount().setText("5000");
-        memberForm.getTxtGymTime().setText("05:00 AM to 11:00 AM");
-        
-        // Reset combobox to default
-        memberForm.getCboGender().setSelectedIndex(0);
-        
-        // Focus on name field
-        memberForm.getTxtName().requestFocus();
     }
 }
